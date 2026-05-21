@@ -1,27 +1,32 @@
-import http from 'node:http';
-import fs from 'fs';
-// Create a local server to receive data from
-const server = http.createServer((req, res) => {
-  const url = new URL(req.url ,`https://${req.headers.host}/`);
-    if (url.pathname === '/'){
-      handleResponse('/index', res);
-    }
-    else if (url.pathname === '/about' || url.pathname === '/contact'){
-      handleResponse(url.pathname, res)
-    }
-  else {
-      handleResponse('/404', res, 404)
+import express from 'express';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const app = express()
+const PORT = process.env.PORT || 8000;
+
+
+app.get('/', (req, res) => {
+  res.sendFile('index.html', { root: __dirname });
+})
+
+app.get('/contact', (req, res) => {
+  res.sendFile('contact.html', { root: __dirname });
+})
+
+app.get('/about', (req, res) => {
+  res.sendFile('about.html', { root: __dirname });
+})
+
+app.use((req,res,next) => {
+  res.status(404).sendFile('404.html', { root: __dirname });
+})
+
+app.listen(PORT, (error) => {
+  if (error) {
+    throw error;
   }
-    
-}); 
-
-server.listen(8000);
-
-
-function handleResponse(pathname, res, status = 200){
-   fs.readFile(`.${pathname}.html`, (err, data) => {
-      res.writeHead(status, { 'Content-Type': 'text/html' });
-      res.write(data);  
-      res.end()
-    })
-}
+  console.log(`listening to port ${PORT}`)
+});
